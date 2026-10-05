@@ -1,0 +1,78 @@
+{
+  "model_name": "FloodShield_RandomForestClassifier",
+  "version": "1.0.0",
+  "target": "flood",
+  "features": [
+    {
+      "name": "rainfall",
+      "type": "float",
+      "unit": "mm",
+      "description": "Precipitation volume over the past 24 to 72 hours",
+      "min": 0.0,
+      "max": 500.0,
+      "mean": 180.5,
+      "danger_threshold": 120.0
+    },
+    {
+      "name": "temperature",
+      "type": "float",
+      "unit": "°C",
+      "description": "Ambient surface temperature",
+      "min": 5.0,
+      "max": 50.0,
+      "mean": 26.5
+    },
+    {
+      "name": "humidity",
+      "type": "float",
+      "unit": "%",
+      "description": "Relative atmospheric humidity percentage",
+      "min": 10.0,
+      "max": 100.0,
+      "mean": 70.0
+    },
+    {
+      "name": "river_level",
+      "type": "float",
+      "unit": "meters",
+      "description": "Current river gauge level above datum (Haridwar danger level 294.0m)",
+      "min": 250.0,
+      "max": 310.0,
+      "mean": 288.0,
+      "danger_threshold": 294.0
+    },
+    {
+      "name": "soil_moisture",
+      "type": "float",
+      "unit": "%",
+      "description": "Volumetric soil saturation ratio 0-7cm depth",
+      "min": 0.0,
+      "max": 100.0,
+      "mean": 60.0,
+      "danger_threshold": 75.0
+    },
+    {
+      "name": "elevation",
+      "type": "float",
+      "unit": "meters",
+      "description": "Surface elevation above sea level",
+      "min": 0.0,
+      "max": 2000.0,
+      "mean": 280.0
+    },
+    {
+      "name": "historical_flood",
+      "type": "int",
+      "unit": "flag",
+      "description": "Location historical inundation occurrence (0=None/Rare, 1=Known basin/floodplain)",
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "thresholds": {
+    "LOW": {"min": 0.0, "max": 0.30, "label": "Low Risk", "color": "#10B981", "code": "GREEN"},
+    "MEDIUM": {"min": 0.30, "max": 0.60, "label": "Medium Risk", "color": "#F59E0B", "code": "YELLOW"},
+    "HIGH": {"min": 0.60, "max": 0.80, "label": "High Risk", "color": "#F97316", "code": "ORANGE"},
+    "CRITICAL": {"min": 0.80, "max": 1.00, "label": "Critical Risk", "color": "#EF4444", "code": "RED"}
+  }
+}
