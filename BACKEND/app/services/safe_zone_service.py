@@ -27,7 +27,7 @@ class SafeZoneService:
     ) -> List[Dict[str, Any]]:
         collection = db_manager.get_collection("safe_zones")
         # Load active, verified safe zones
-        raw_zones = collection.find({"status": "ACTIVE", "verification_status": "VERIFIED"})
+        raw_zones = list(collection.find({"status": "ACTIVE", "verification_status": "VERIFIED"}))
 
         recommended = []
         for zone in raw_zones:
@@ -85,7 +85,7 @@ class SafeZoneService:
     @staticmethod
     def get_all_safe_zones() -> List[Dict[str, Any]]:
         collection = db_manager.get_collection("safe_zones")
-        return collection.find({})
+        return list(collection.find({}))
 
     @staticmethod
     def add_safe_zone(data: Dict[str, Any]) -> Dict[str, Any]:

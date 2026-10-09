@@ -176,7 +176,7 @@ def _fetch_cwc_nwdp_level(station_id: str) -> Optional[float]:
             f"https://nwdp.nwic.gov.in/api/v1/telemetry/river-level"
             f"?station_id={station_id}&limit=1&format=json"
         )
-        resp = requests.get(url, timeout=3.0, headers={"Accept": "application/json"})
+        resp = requests.get(url, timeout=1.5, headers={"Accept": "application/json"}, allow_redirects=False)
         if resp.status_code == 200:
             data = resp.json()
             records = data.get("data", data.get("results", []))
@@ -198,7 +198,7 @@ def _fetch_cwc_india_wris_level(station_id: str) -> Optional[float]:
         api_url = (
             f"https://indiawris.gov.in/api/hydrological/station/{station_id}/latest"
         )
-        resp = requests.get(api_url, timeout=3.0, headers={"Accept": "application/json"})
+        resp = requests.get(api_url, timeout=1.5, headers={"Accept": "application/json"}, allow_redirects=False)
         if resp.status_code == 200:
             data = resp.json()
             level = data.get("gauge_level") or data.get("water_level_m")

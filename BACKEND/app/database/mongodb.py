@@ -100,12 +100,13 @@ class DatabaseManager:
 
     def init_db(self):
         try:
-            self.client = MongoClient(settings.MONGODB_URI, serverSelectionTimeoutMS=1200)
+            self.client = MongoClient(settings.MONGODB_URI, serverSelectionTimeoutMS=5000)
             # Verify server is reachable
             self.client.admin.command('ping')
             self.db = self.client[settings.DATABASE_NAME]
             self.is_connected = True
             print(f"[Database] Successfully connected to live MongoDB at {settings.MONGODB_URI}")
+            self._ensure_seed_data_live()
             self._ensure_seed_data_live()
         except (ConnectionFailure, ServerSelectionTimeoutError, Exception) as e:
             print(f"[Database] Live MongoDB not reachable ({e}). Switching to Resilient Fallback Store.")
@@ -326,7 +327,29 @@ class DatabaseManager:
 
     def _ensure_seed_data_live(self):
         """If connected to live MongoDB, insert seeds if collection is empty."""
-        pass
+        if not self.is_connected or self.db is None:
+            return
+            
+        self._init_memory_store()
+        try:
+            safe_zones_col = self.db['safe_zones']
+            if safe_zones_col.count_documents({}) == 0 and len(self.collections['safe_zones'].docs) > 0:
+                safe_zones_col.insert_many(self.collections['safe_zones'].docs)
+                print('[Database] Seeded safe_zones')
+
+            alerts_col = self.db['alerts']
+            if alerts_col.count_documents({}) == 0 and len(self.collections['alerts'].docs) > 0:
+                alerts_col.insert_many(self.collections['alerts'].docs)
+                print('[Database] Seeded alerts')
+                
+            status_col = self.db['data_source_status']
+            if status_col.count_documents({}) == 0 and len(self.collections['data_source_status'].docs) > 0:
+                status_col.insert_many(self.collections['data_source_status'].docs)
+                print('[Database] Seeded data_source_status')
+                
+            self.collections = {}
+        except Exception as e:
+            print(f"[Database] Error seeding data: {e}")
 
     def get_collection(self, name: str):
         if self.is_connected and self.db is not None:

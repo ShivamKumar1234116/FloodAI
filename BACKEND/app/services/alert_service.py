@@ -15,7 +15,7 @@ class AlertService:
     def get_all_alerts(active_only: bool = True) -> List[Dict[str, Any]]:
         collection = db_manager.get_collection("alerts")
         query = {"active": True} if active_only else {}
-        alerts = collection.find(query)
+        alerts = list(collection.find(query))
         # Sort latest first
         alerts.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         return alerts

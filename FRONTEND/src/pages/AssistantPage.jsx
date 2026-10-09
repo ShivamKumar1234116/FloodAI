@@ -37,7 +37,12 @@ export const AssistantPage = () => {
         assessmentData?.risk_assessment?.risk_level,
         assessmentData?.features_used
       );
-      setMessages((prev) => [...prev, { sender: 'bot', text: res.reply }]);
+      setMessages((prev) => [...prev, { 
+        sender: 'bot', 
+        text: res.reply,
+        source: res.source,
+        disclaimer: res.disclaimer
+      }]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -132,7 +137,21 @@ export const AssistantPage = () => {
                   : 'glass-panel text-slate-200 border border-slate-800'
               }`}
             >
-              {m.text}
+              <div dangerouslySetInnerHTML={{
+                __html: m.text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>')
+              }} />
+              {m.source && (
+                <div className="mt-3 pt-3 border-t border-slate-700/50 flex flex-col gap-1.5">
+                  <span className="text-[10px] text-slate-400 italic">
+                    <span className="font-semibold text-cyan-400">Powered By: </span> {m.source}
+                  </span>
+                  {m.disclaimer && (
+                    <span className="text-[10px] text-slate-500">
+                      ⚠️ {m.disclaimer}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}

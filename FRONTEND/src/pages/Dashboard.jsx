@@ -6,6 +6,7 @@ import { RiskGauge } from '../components/dashboard/RiskGauge';
 import { RiskExplanation } from '../components/dashboard/RiskExplanation';
 import { SafeZoneList } from '../components/dashboard/SafeZoneList';
 import { ActionGuidance } from '../components/dashboard/ActionGuidance';
+import { AlertSubscription } from '../components/dashboard/AlertSubscription';
 import { FloodMap } from '../components/map/FloodMap';
 import { ChatbotDrawer } from '../components/dashboard/ChatbotDrawer';
 import { AlertBanner } from '../components/common/AlertBanner';
@@ -143,8 +144,11 @@ export const Dashboard = () => {
         onSelectZone={handleSelectZone}
       />
 
-      {/* Action Guidance & Emergency Protocol */}
-      <ActionGuidance actions={recommendedActions} />
+      {/* Action Guidance & Alerts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ActionGuidance actions={recommendedActions} />
+        <AlertSubscription />
+      </div>
 
       {/* Slide-in Emergency Chatbot Drawer */}
       <ChatbotDrawer

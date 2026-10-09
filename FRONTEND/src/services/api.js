@@ -7,10 +7,8 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 30000,
 });
-
-// Interceptor to inject JWT token
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('floodshield_token');
   if (token) {
@@ -89,6 +87,10 @@ export const safeZonesApi = {
 export const alertsApi = {
   getPublic: async () => {
     const res = await apiClient.get('/alerts');
+    return res.data;
+  },
+  subscribe: async (data) => {
+    const res = await apiClient.post('/alerts/subscribe', data);
     return res.data;
   },
 };

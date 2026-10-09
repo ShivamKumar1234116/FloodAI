@@ -3,6 +3,7 @@ FloodShield AI - Authentication Route & JWT Authorization
 Supports USER and ADMIN roles with secure password hashing and JWT issuance.
 """
 import datetime
+import uuid
 from typing import Optional
 import jwt
 import bcrypt
@@ -61,7 +62,7 @@ def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depen
         
         # Check users collection
         users = db_manager.get_collection("users")
-        user = users.find_one({"_id": user_id})
+        user = users.find_one({"email": payload.get("email")})
         if not user:
             # Check default admin
             if payload.get("email") == settings.DEFAULT_ADMIN_EMAIL:
@@ -72,6 +73,7 @@ def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depen
                     "role": "ADMIN"
                 }
             raise HTTPException(status_code=401, detail="User not found")
+        user["_id"] = str(user.get("_id", ""))
         return user
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
@@ -94,19 +96,21 @@ def register(req: RegisterRequest):
     hashed = hash_password(req.password)
     user_doc = {
         "name": req.name,
+        "username": req.email.lower() + "_" + str(uuid.uuid4())[:8],
         "email": req.email.lower(),
         "password": hashed,
         "role": req.role.upper() if req.role.upper() in ["USER", "ADMIN"] else "USER",
         "phone": req.phone,
         "created_at": datetime.datetime.utcnow().isoformat()
     }
+    user_doc["_id"] = str(uuid.uuid4())
     res = users.insert_one(user_doc)
     user_doc["_id"] = str(res.inserted_id)
     user_safe = {k: v for k, v in user_doc.items() if k != "password"}
 
     token = create_access_token({"sub": user_doc["_id"], "email": user_doc["email"], "role": user_doc["role"]})
     return {"access_token": token, "token_type": "bearer", "user": user_safe}
-
+# https://localhost:8000/auth/login
 @router.post("/login", response_model=TokenResponse)
 def login(req: LoginRequest):
     email = req.email.lower()
@@ -127,6 +131,7 @@ def login(req: LoginRequest):
     if not user or not verify_password(req.password, user.get("password", "")):
         raise HTTPException(status_code=400, detail="Incorrect email or password")
 
+    user["_id"] = str(user.get("_id", "")) 
     user_safe = {k: v for k, v in user.items() if k != "password"}
     token = create_access_token({"sub": user["_id"], "email": user["email"], "role": user.get("role", "USER")})
     return {"access_token": token, "token_type": "bearer", "user": user_safe}

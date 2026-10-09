@@ -27,8 +27,13 @@ export const ChatbotDrawer = ({ isOpen, onClose, currentLocation, riskLevel, fea
     setLoading(true);
 
     try {
-      const data = await chatbotApi.sendQuery(userMsg, currentLocation, riskLevel, features);
-      setMessages((prev) => [...prev, { sender: 'bot', text: data.reply }]);
+      const data = await chatbotApi.sendQuery(userMsg || prompt, currentLocation, riskLevel, features);
+      setMessages((prev) => [...prev, { 
+        sender: 'bot', 
+        text: data.reply,
+        source: data.source,
+        disclaimer: data.disclaimer
+      }]);
     } catch (err) {
       console.error('Chat error', err);
       setMessages((prev) => [
@@ -43,8 +48,31 @@ export const ChatbotDrawer = ({ isOpen, onClose, currentLocation, riskLevel, fea
     }
   };
 
-  const handleQuickPrompt = (prompt) => {
-    setInputText(prompt);
+  const handleQuickPrompt = async (prompt) => {
+    if (loading) return;
+    setMessages((prev) => [...prev, { sender: 'user', text: prompt }]);
+    setLoading(true);
+
+    try {
+      const data = await chatbotApi.sendQuery(prompt, currentLocation, riskLevel, features);
+      setMessages((prev) => [...prev, { 
+        sender: 'bot', 
+        text: data.reply,
+        source: data.source,
+        disclaimer: data.disclaimer
+      }]);
+    } catch (err) {
+      console.error('Chat error', err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: 'bot',
+          text: 'I am temporarily experiencing connectivity issues with the inference server. In an immediate life-threatening emergency, please dial **1078 (NDRF)** or **112**.',
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -122,11 +150,25 @@ export const ChatbotDrawer = ({ isOpen, onClose, currentLocation, riskLevel, fea
             <div
               className={`max-w-[82%] rounded-2xl p-3.5 text-xs leading-relaxed ${
                 m.sender === 'user'
-                  ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md'
-                  : 'bg-slate-800/90 text-slate-200 border border-slate-700/80 shadow-md whitespace-pre-line'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'bg-slate-700 text-cyan-50 shadow-md whitespace-pre-line'
               }`}
             >
-              {m.text}
+              <div dangerouslySetInnerHTML={{
+                __html: m.text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>')
+              }} />
+              {m.source && (
+                <div className="mt-2 pt-2 border-t border-slate-600/50 flex flex-col gap-1">
+                  <span className="text-[9px] text-slate-400 italic">
+                    <span className="font-semibold text-cyan-400">Powered By: </span> {m.source}
+                  </span>
+                  {m.disclaimer && (
+                    <span className="text-[9px] text-slate-400 opacity-80">
+                      ⚠️ {m.disclaimer}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}
